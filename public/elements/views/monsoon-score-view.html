@@ -1,0 +1,114 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/px-card/px-card.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/px-data-table/px-data-table.html">
+
+<link rel="import" href="../../UI/Layout/ipa-layout-hts-history-datatable.html">
+<link rel="import" href="../../elements/MyRequest/UI/slide-show-view.html">
+
+<link rel="import" href="../../elements/MyRequest/UI/Layout/ipa-layout-hts-history-datatable.html">
+
+		
+<dom-module id="monsoon-score-view">
+		<template>
+            <style>
+              :host::content .aha-table-0 .scroll-body.aha-table {
+    display: block;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-left: 1px;
+    padding-right: 1px;
+    padding-top: 10%;
+    padding-bottom: 20%;
+    /* background-color: antiquewhite; */
+    background: url("../../images/img4.jpg") no-repeat center center fixed;
+    background-repeat: no-repeat;
+    -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+  filter: greyscale(100%);
+}
+
+:host::content .aha-table-0 .header--container.aha-table {
+    justify-content: space-between;
+    color: black;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+:host::content.px-data-table-cell-0 .cell--value.px-data-table-cell, .px-data-table-cell-0 .flex.px-data-table-cell, .px-data-table-cell-0 .layout.px-data-table-cell {
+    display: flex;
+    color:#b71c1c;
+    font-weight: bolder;
+    font-size: 15px;
+
+}
+
+:host::content.aha-table-0 .table.aha-table .td.aha-table, .aha-table-0 .table.aha-table td.aha-table {
+    border-bottom: 1px solid #137cbb;
+    border-top: 1px solid #1b8dd2;
+}
+                </style>
+        <iron-ajax id="myRequestHistoryAjax" url="/getadhochistorydata" method="get" on-response="_handleMyRequestHistoryResponse"
+            on-error="_handleMyRequestHistoryOnError" auto></iron-ajax>
+        <!-- <ipa-layout-hts-history-datatable id="myRequestHistoryTable" raw-data="{{myRequestHistoryData}}" table-header="My Request History"></ipa-layout-hts-history-datatable> -->
+       <div>
+        <px-data-table id="table"
+        table-data = "{{myRequestHistoryData}}"
+        language="en"
+        include-all-columns
+        sortable
+        hide-pagination-control>
+        <!-- <px-data-table-column
+        name='teamName'
+        sortable
+        editable
+        filterable>
+        </px-data-table-column> -->
+        </px-data-table>
+   </div>
+   <div>
+       <!-- <slide-show-view></slide-show-view> -->
+       </div>
+    </template>
+  
+  <script>
+    Polymer({
+      is: 'monsoon-score-view',
+      properties: {
+				myRequestHistoryData: {
+                        type: Object,
+                        value: function () {
+                            return [];
+                        }
+                    }
+      },
+			ready: function () {
+                    var _self = this;
+                    document.addEventListener("refreshMyRequestHistoryDataTable", function (e) {
+                        _self._reloadDataFromServer();
+                    });
+                    this.addEventListener("reloadDataTable", function () {
+                        _self.f();
+                    });
+                },
+                _reloadDataFromServer: function () {
+                    this.fire("showProgressBar");
+                    this.$.myRequestHistoryAjax.generateRequest();
+                },
+                _handleMyRequestHistoryResponse: function (e) {
+                    this.fire("hideProgressBar");
+                    if (e === null || e.detail.response === null) {
+                        this.myRequestHistoryData = [];
+                    } else {
+
+                        this.myRequestHistoryData = e.detail.response;
+                    }
+                },
+                _handleMyRequestHistoryOnError: function () {
+                    this.fire("hideProgressBar");
+                }
+             
+              });  </script>
+</dom-module>

@@ -1,0 +1,56 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../UI/Layout/ipa-layout-hts-history-datatable.html">
+<link rel="import" href="../../../bower_components/px-card/px-card.html">
+<link rel="import" href="../../../bower_components/iron-ajax/iron-ajax.html">
+<dom-module id="ipa-ui-hts-history">
+    <style>
+        :host {
+            height: 100%
+        }
+    </style>
+    <template>
+        <iron-ajax id="myRequestHistoryAjax" url="/getadhochistorydata" method="get" on-response="_handleMyRequestHistoryResponse"
+            on-error="_handleMyRequestHistoryOnError" auto></iron-ajax>
+        <ipa-layout-hts-history-datatable id="myRequestHistoryTable" raw-data="{{myRequestHistoryData}}" table-header="My Request History"></ipa-layout-hts-history-datatable>
+    </template>
+    <script>
+        HTMLImports.whenReady(function () {
+            Polymer({
+                is: 'ipa-ui-hts-history',
+                properties: {
+                    myRequestHistoryData: {
+                        type: Object,
+                        value: function () {
+                            return [];
+                        }
+                    }
+                },
+                ready: function () {
+                    var _self = this;
+                    document.addEventListener("refreshMyRequestHistoryDataTable", function (e) {
+                        _self._reloadDataFromServer();
+                    });
+                    this.addEventListener("reloadDataTable", function () {
+                        _self._reloadDataFromServer();
+                    });
+                },
+                _reloadDataFromServer: function () {
+                    this.fire("showProgressBar");
+                    this.$.myRequestHistoryAjax.generateRequest();
+                },
+                _handleMyRequestHistoryResponse: function (e) {
+                    this.fire("hideProgressBar");
+                    if (e === null || e.detail.response === null) {
+                        this.myRequestHistoryData = [];
+                    } else {
+
+                        this.myRequestHistoryData = e.detail.response;
+                    }
+                },
+                _handleMyRequestHistoryOnError: function () {
+                    this.fire("hideProgressBar");
+                }
+            });
+        });
+    </script>
+</dom-module>

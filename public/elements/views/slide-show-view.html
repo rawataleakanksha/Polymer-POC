@@ -1,0 +1,184 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/px-card/px-card.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/marked-element/marked-element.html">
+
+<dom-module id="slide-show-view">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #f1f1f1;
+            padding: 20px;
+            font-family: Arial;
+        }
+        
+        /* Center website */
+        .main {
+            max-width: 1000px;
+            margin: auto;
+        }
+        
+        h1 {
+            font-size: 50px;
+            word-break: break-all;
+        }
+        
+        .row {
+            margin: 8px -16px;
+        }
+        
+        /* Add padding BETWEEN each column */
+        .row,
+        .row > .column {
+            padding: 8px;
+        }
+        
+        /* Create four equal columns that floats next to each other */
+        .column {
+            float: left;
+            width: 25%;
+        }
+        
+        /* Clear floats after rows */ 
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        
+        /* Content */
+        .content {
+            background-color: white;
+            padding: 10px;
+        }
+        
+        /* Responsive layout - makes a two column-layout instead of four columns */
+        @media screen and (max-width: 900px) {
+            .column {
+                width: 50%;
+            }
+        }
+        
+        /* Responsive layout - makes the two columns stack on top of each other instead of next to each other */
+        @media screen and (max-width: 600px) {
+            .column {
+                width: 100%;
+            }
+        }
+        h3{
+          color: rebeccapurple;
+        }
+     
+        </style>
+  <template>
+ 
+      <div class="main">
+
+          <h1>Team Insights</h1>
+          <hr>
+        
+          <!-- Portfolio Gallery Grid -->
+          <div class="row">
+            <div class="column">
+              <div class="content">
+                <img src="../../images/2.jpg" alt="Mountains" style="width:100%">
+                <h3>Bheem ke Bhidoos</h3>
+              </div>
+            </div>
+            <div class="column">
+              <div class="content">
+              <img src="../../images/4.jpg" alt="Lights" style="width:100%">
+                <h3>Cloudburst Donald</h3>
+                <p></p>
+              </div>
+            </div>
+            <div class="column">
+              <div class="content">
+              <img src="../../images/6.jpg" alt="Nature" style="width:100%">
+                <h3>One in a Minion</h3>
+                <p></p>
+              </div>
+            </div>
+            <div class="column">
+              <div class="content">
+              <img src="../../images/3.jpg" alt="Mountains" style="width:100%">
+                <h3>Popeye Pirates</h3>
+                <p></p>
+              </div>
+            </div>
+          <!-- END GRID -->
+          </div>
+          
+          <div class="row">
+              <!-- <div class="column"> -->
+                  <!-- <div class="column">
+                      <div class="content">
+                      <img src="../../images/3.jpg" alt="Mountains" style="width:100%">
+                        <h3>Popeye Pirates</h3>
+                        <p></p>
+                      </div>
+                      </div> -->
+              <div class="column">
+                      
+                <div class="content">
+                  <img src="../../images/1.jpg" alt="Mountains" style="width:100%">
+                  <h3>Tom & Jerry - The Musketeers</h3>
+                </div>
+              </div>
+         
+              <div class="column">
+                <div class="content">
+                <img src="../../images/5.jpg" alt="Lights" style="width:100%">
+                  <h3>Toofani Shinchan</h3>
+                  <p></p>
+                </div>
+              </div>
+              <!-- <div class="column">
+                <div class="content">
+                <img src="../../images/7.jpg" alt="Nature" style="width:100%">
+                  <h3>CMAT</h3>
+                  <p></p>
+                </div> -->
+              </div>
+              <!-- <div class="column">
+                <div class="content">
+                <img src="../../images/3.jpg" alt="Mountains" style="width:100%">
+                  <h3>Popeye Pirates</h3>
+                  <p></p>
+                </div> -->
+              </div>
+            <!-- END GRID -->
+            </div>
+            
+<!-- 
+          <div class="content">
+            <img src="../../images/1.jpg" alt="Bear" style="width:100%">
+            <h3>Tom & Jerry - The Musketeers</h3>
+            
+          </div> -->
+          
+          <!-- END MAIN -->
+          </div>
+          
+      
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'slide-show-view',
+      properties: {},
+      ready: function () {
+        
+    //  showSlides(slideIndex);
+      
+     
+      },
+
+  
+    });
+  </script>
+</dom-module>

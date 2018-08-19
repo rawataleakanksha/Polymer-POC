@@ -1,0 +1,71 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/px-card/px-card.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/marked-element/marked-element.html">
+
+<dom-module id="monsoon-about-view">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+
+      .container {
+        position: relative;
+        max-width: 98%;
+        /* Maximum width */
+        margin: 0 auto;
+        /* Center it */
+        height :auto;
+      }
+
+      .container .content {
+        position: absolute;
+        /* Position the background text */
+        top: 0;
+        /* At the bottom. Use top:0 to append it to the top */
+        background: rgba(0, 0, 0, 0.5);
+        /* Black background with 0.5 opacity */
+        color: #f1f1f1;
+        /* Grey text */
+        width: 100%;
+        /* Full width */
+        padding: 20px;
+        /* Some padding */
+      }
+    </style>
+    <style is="custom-style">
+      paper-material {
+
+        margin: auto 20px;
+      }
+    </style>
+    <!-- App layout usage -->
+
+    <div class="container">
+      <img src="../../images/img6.jpg" alt="Notebook" style="width:100%;">
+      <div class="content">
+        <h1>Bonjour Monsoon</h1>
+         <p style="padding: 20px 100px; font-size: 20px;font-style: italic; text-align: justify;">
+            <strong>Bonjour Monsoon</strong> is an annual Monsoon fun event organized by CMAT.CMAT wishes all the Best to every team </p> 
+            <!-- CMAT (Communication Measurement Action team).
+            Starting from 2004, CMAT is of the Corporate, by the corporate and for the Corporate which involved in Employee Engagement
+            activities, which builds up the fun and engagement of employees of corporate. This season is filled with loads of
+            fun than before.
+             CMAT wishes all the Best to every team </p> -->
+      </div>
+    </div>
+
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'monsoon-about-view',
+      properties: {},
+      ready: function () {
+
+      }
+    });
+  </script>
+</dom-module>
