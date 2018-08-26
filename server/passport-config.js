@@ -27,7 +27,7 @@ function configurePassportStrategy(predixConfig) {
 	//   have a database of user records, the complete CloudFoundry profile is
 	//   serialized and deserialized.
 	passport.serializeUser(function(user, done) {
-		//  
+		// console.log("From USER-->"+JSON.stringify(user));
 		done(null, user);
 	});
 	passport.deserializeUser(function(obj, done) {

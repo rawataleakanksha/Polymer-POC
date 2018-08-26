@@ -4,248 +4,260 @@ The predix-webapp-starter Express web application includes these features:
   * passport-predix-oauth for authentication, and a sample secure route
   * a proxy module for calling Predix services such as asset and time series
 *******************************************************/
-'use strict';
-let http = require('http'); // needed to integrate with ws package for mock web socket server.
-let express = require('express');
-let path = require('path');
-let cookieParser = require('cookie-parser'); // used for session cookie
-let bodyParser = require('body-parser');
-let passport; // only used if you have configured properties for UAA
-let session = require('express-session');
-let proxy = require('./routes/proxy'); // used when requesting data from real services.
-// get config settings from local file or VCAPS env let in the cloud
-let config = require('./predix-config');
+var http = require('http'); // needed to integrate with ws package for mock web socket server.
+var express = require('express');
+var jsonServer = require('json-server'); // used for mock api responses
+var path = require('path');
+var cookieParser = require('cookie-parser'); // used for session cookie
+var bodyParser = require('body-parser');
+var passport;  // only used if you have configured properties for UAA
+var session = require('express-session');
+var proxy = require('./routes/proxy'); // used when requesting data from real services.
+// get config settings from local file or VCAPS env var in the cloud
+var config = require('./predix-config');
 // configure passport for authentication with UAA
-let passportConfig = require('./passport-config');
+var passportConfig = require('./passport-config');
 // getting user information from UAA
-let userInfo = require('./routes/user-info');
-let sanitizer = require('sanitizer');
-let app = express();
+var userInfo = require('./routes/user-info');
+var app = express();
+var httpServer = http.createServer(app);
+var dataExchange = require('./routes/data-exchange');
+// var fs = require("fs");
+// var assettemplatefile = "sample-data/predix-asset/compressor-2017-clone.json";
 
-let httpServer = http.createServer(app);
-
-let request = require('request');
-//let fileUpload = require('express-fileupload');
-
-let developmentToken = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImxlZ2FjeS10b2tlbi1rZXkiLCJ0eXAiOiJKV1QifQ.eyJqdGkiOiIxMmM5NjBmNmRhNDM0N2E1YmVkNzQzZjRmNjM1YTFmMSIsInN1YiI6IjgxZjRjNGRmLThmOGQtNDY0MS04NWIyLTg3M2FkMGNhOGYxOSIsInNjb3BlIjpbImcwMTIxNTU1MyIsIm9wZW5pZCIsImcwMTIzMzA5NSIsImcwMTIwNDk1OSJdLCJjbGllbnRfaWQiOiJkaWdpdGFsX2lwYV9hY3Rpdml0aV9jbGllbnRfZGV2X3Byb2QiLCJjaWQiOiJkaWdpdGFsX2lwYV9hY3Rpdml0aV9jbGllbnRfZGV2X3Byb2QiLCJhenAiOiJkaWdpdGFsX2lwYV9hY3Rpdml0aV9jbGllbnRfZGV2X3Byb2QiLCJncmFudF90eXBlIjoiYXV0aG9yaXphdGlvbl9jb2RlIiwidXNlcl9pZCI6IjgxZjRjNGRmLThmOGQtNDY0MS04NWIyLTg3M2FkMGNhOGYxOSIsIm9yaWdpbiI6ImdlLXNzby1ncm91cHMiLCJ1c2VyX25hbWUiOiI1MDI3NjkxNjciLCJlbWFpbCI6ImFrYW5rc2hhLnJhd2F0YWxlQGdlLmNvbSIsImF1dGhfdGltZSI6MTUzMzkwMDg5MSwicmV2X3NpZyI6IjhmMWFiMDJiIiwiaWF0IjoxNTMzOTAwODkyLCJleHAiOjE1MzM5MDgwOTEsImlzcyI6Imh0dHBzOi8vYThhMmZmYzQtYjA0ZS00ZWMxLWJmZWQtN2E1MWRkNDA4NzI1LnByZWRpeC11YWEucnVuLmF3cy11c3cwMi1wci5pY2UucHJlZGl4LmlvL29hdXRoL3Rva2VuIiwiemlkIjoiYThhMmZmYzQtYjA0ZS00ZWMxLWJmZWQtN2E1MWRkNDA4NzI1IiwiYXVkIjpbImRpZ2l0YWxfaXBhX2FjdGl2aXRpX2NsaWVudF9kZXZfcHJvZCIsIm9wZW5pZCJdfQ.jA8Le8KjRESS0Zqk6NI9QZA71vicoLHfkFYj0NHppRq8aq_Y5FItR4_zudaGwSmDZ7qjQP-u7RpavefAvD4yK3YdwngpkTVT6WEzg8qEF26Nw2tjH-Jqm-6C0I_01Bm5k9EiEJEmJ8FWcb-6zuvK_9wDA2XWIngCQNE1bgCKMF-7ZY1X5laBWmVDMMAlZit3Z2E79-31MF51bo6U3pmp-IMuYahmq935GoFCnY-W9aqxxXiozY3lyPByZzduVdbcE8rWJlb6Kqlh1viobuYgW0oHAOHNaA3DREoPeDAPOZ9p3B7prvA-Cq9nGqCdCeHGMcQoB4WMuU7bCiCGxeuymA";
-
-let developmentUser = '502769167'; // SSO Akanksha
-//let developmentUser = '503045924'; // SSO Prijil
-//let developmentUser = '502770478'; // SSO Manohar
-//let developmentUser = '502776264';//SSO Yasir
-//let developmentUser = '502744868' //SSO Prachi
-let developmentUserEmail = 'prachi.joglekar@ge.com'
-//let developmentUserEmail = 'manohar.kumar@ge.com'
-// let developmentUserEmail = 'akanksha.rawatale@ge.com'
-
-//for outside rest api calls
-// let Client = require('node-rest-client').Client;
 /**********************************************************************
        SETTING UP EXRESS SERVER
 ***********************************************************************/
 app.set('trust proxy', 1);
+
 // if running locally, we need to set up the proxy from local config file:
-let nodeEnv = process.env.node_env || 'development';
-console.log('************ Environment: ' + nodeEnv + '******************');
-let ENCRYPTION_KEY;
-if (nodeEnv === 'development') {
-    let devConfig = require('./localConfig.json')[nodeEnv];
-    proxy.setServiceConfig(config.buildVcapObjectFromLocalConfig(devConfig));
-    proxy.setUaaConfig(devConfig);
-    ENCRYPTION_KEY = sanitizer.sanitize(devConfig.ENCRYPTION_KEY);
+var node_env = process.env.node_env || 'development';
+console.log('************ Environment: '+node_env+'******************');
+
+if (node_env === 'development') {
+  var devConfig = require('./localConfig.json')[node_env];
+	proxy.setServiceConfig(config.buildVcapObjectFromLocalConfig(devConfig));
+	proxy.setUaaConfig(devConfig);
 } else {
-    app.use(require('compression')())
-    ENCRYPTION_KEY = sanitizer.sanitize(process.env.ENCRYPTION_KEY); // gzip compression
+  app.use(require('compression')()) // gzip compression
 }
+
 // Session Storage Configuration:
 // *** Use this in-memory session store for development only. Use redis for prod. **
-let sessionOptions = {
-    secret: ENCRYPTION_KEY,
-    name: 'cookie_name',
-    // give a custom name for your cookie here
-    maxAge: 30 * 60 * 1000,
-    // expire token after 30 min.
-    proxy: true,
-    resave: true,
-    saveUninitialized: true
-    // cookie: {secure: true} // secure cookie is preferred, but not possible in some clouds.
+var sessionOptions = {
+  secret: 'predixsample',
+  name: 'cookie_name', // give a custom name for your cookie here
+  maxAge: 30 * 60 * 1000,  // expire token after 30 min.
+  proxy: true,
+  resave: true,
+  saveUninitialized: true
+  // cookie: {secure: true} // secure cookie is preferred, but not possible in some clouds.
 };
-app.use(cookieParser(ENCRYPTION_KEY));
+var redisCreds = config.getRedisCredentials();
+if (redisCreds) {
+  console.log('Using predix-cache for session store.');
+  var RedisStore = require('connect-redis')(session);
+  sessionOptions.store = new RedisStore({
+    host: redisCreds.host,
+    port: redisCreds.port,
+    pass: redisCreds.password,
+    ttl: 1800 // seconds = 30 min
+  });
+}
+app.use(cookieParser('predixsample'));
 app.use(session(sessionOptions));
 
-Array.prototype.contains = function (element) {
-    return this.indexOf(element) > -1;
-};
 console.log('UAA is configured?', config.isUaaConfigured());
 if (config.isUaaConfigured()) {
-    passport = passportConfig.configurePassportStrategy(config);
-    app.use(passport.initialize());
-    // Also use passport.session() middleware, to support persistent login sessions (recommended).
-    app.use(passport.session());
+	passport = passportConfig.configurePassportStrategy(config);
+  app.use(passport.initialize());
+  // Also use passport.session() middleware, to support persistent login sessions (recommended).
+  app.use(passport.session());
 }
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-    extended: false
-}));
-//app.use(fileUpload());
-app.use(function (req, res, next) {
-    // console.log('NEW REQUEST    : ', '[' + req.method + ']', req.url);
-    // console.log('WITH PARAMETERS: ', req.body);
-    // console.log('WITH HEADERS   : ', req.headers);
+app.use(bodyParser.urlencoded({ extended: false }));
 
-    if (nodeEnv === 'development') {
-        // console.log('INSIDE DEVELOPMENT');
-        req.session.passport = {
-            user: {
-                ticket: {
-                    access_token: developmentToken
-                }
-            }
-        }
+/****************************************************************************
+	SET UP EXPRESS ROUTES
+*****************************************************************************/
 
-        req.user = {
-            details: {
-                user_name: developmentUser,
-                user_email: developmentUserEmail
-            }
-        }
-
-         process.env.activitiServiceUrl = 'https://ipa-activiti-server-dev.run.aws-usw02-pr.ice.predix.io';
-      //  process.env.activitiServiceUrl = 'https://digital-ipa-server.run.aws-usw02-pr.ice.predix.io';
-        process.env.activitiUtilUrl = 'https://ipa-activiti-util-dev.run.aws-usw02-pr.ice.predix.io';
-        process.env.classificationRequestUrl = 'https://ice-classification-request-dev.run.aws-usw02-pr.ice.predix.io';
-        process.env.activitiDataLoad= 'https://ipa-activiti-data-load-dev.run.aws-usw02-pr.ice.predix.io'
-        req.session.passport.user.ticket.access_token = developmentToken;
-        req.user.details.user_name = developmentUser;
-        req.user.details.user_email = developmentUserEmail;
-    }
-    next();
-});
+app.get('/docs', require('./routes/docs')(config));
 
 if (!config.isUaaConfigured()) {
-    // no restrictions
-    app.use(express.static(path.join(__dirname, process.env['base-dir'] ? process.env['base-dir'] : '../public')));
+  // no restrictions
+  app.use(express.static(path.join(__dirname, process.env['base-dir'] ? process.env['base-dir'] : '../public')));
 
-    // mock UAA routes
-    app.get(['/login', '/logout'], function (req, res) {
-        res.redirect('/');
-    })
-
-    app.get('/userinfo', function (req, res) {
-        let user = req.user;
-        //  console.log('USER DETAILS___________________________',user);
-        if (user !== null && user !== undefined) {
-
-            res.send({
-                user_name: user.details.user_name,
-
-            });
-            console.log('USER DETAILS___________________________', user);
-        }
-    });
-
+  // mock UAA routes
+  app.get(['/login', '/logout'], function(req, res) {
+    res.redirect('/');
+  })
+  app.get('/userinfo', function(req, res) {
+      res.send({user_name: 'Sample User'});
+  });
 } else {
+  //login route redirect to predix uaa login page
+  app.get('/login',passport.authenticate('predix', {'scope': ''}), function(req, res) {
+    // The request will be redirected to Predix for authentication, so this
+    // function will not be called.
+  });
 
-    //login route redirect to predix uaa login page
-    app.get('/login', passport.authenticate('predix', {
-        'scope': ''
-    }), function (req, res) {
-        // The request will be redirected to Predix for authentication, so this
-        // function will not be called.
+  // route to fetch user info from UAA for use in the browser
+  app.get('/userinfo', userInfo(config.uaaURL), function(req, res) {
+    res.send(req.user.details);
+  });
+
+  // access real Predix services using this route.
+  // the proxy will add UAA token and Predix Zone ID.
+  app.use(['/predix-api', '/api'],
+  	passport.authenticate('main', {
+  		noredirect: true
+  	}),
+  	proxy.router);
+
+  //callback route redirects to secure route after login
+  app.get('/callback', passport.authenticate('predix', {
+  	failureRedirect: '/'
+  }), function(req, res) {
+  	console.log('Redirecting to secure route...');
+  	res.redirect('/');
     });
 
-    // route to fetch user info from UAA for use in the browser
-    app.get('/userinfo', userInfo(config.uaaURL), function (req, res) {
-        let user = req.user;
-        if (user !== null && user !== undefined) {
-            res.send(user.details);
-        }
-    });
-    // access real Predix services using this route.
-    // the proxy will add UAA token and Predix Zone ID.
-    app.use(['/predix-api', '/api'],
-        passport.authenticate('main', {
-            noredirect: true
-        }),
-        proxy.router);
+  // example of calling a custom microservice.
+  // if (windServiceURL && windServiceURL.indexOf('https') === 0) {
+  //   app.get('/windy/*', passport.authenticate('main', { noredirect: true}),
+  //     // if calling a secure microservice, you can use this middleware to add a client token.
+  //     // proxy.addClientTokenMiddleware,
+  //     // or you can use this middleware to add a user access token.
+  //     // proxy.addAccessTokenMiddleware,
+  //     proxy.customProxyMiddleware('/windy', windServiceURL)
+  //   );
+  // }
 
+  if (config.rmdDatasourceURL && config.rmdDatasourceURL.indexOf('https') === 0) {
+    app.get('/api/datagrid/*',
+        proxy.addClientTokenMiddleware,
+        proxy.customProxyMiddleware('/api/datagrid', config.rmdDatasourceURL, '/services/experience/datasource/datagrid'));
+  }
 
-    //callback route redirects to secure route after login
-    app.get('/logout',
-        function (req, res) {
-            console.log("inside logout");
-            req.session.destroy();
-            req.logout();
-            passportConfig.reset(); //reset auth tokens
-            res.redirect(config.uaaURL + '/logout?redirect=' + encodeURIComponent(process.env.ssoLogoutUrl + process.env.appUrl));
-            // res.redirect(process.env.appUrl);
-        });
-    //callback route redirects to secure route after login
-    app.get('/callback',
-        passport.authenticate('predix', {
-            failureRedirect: '/'
-        }),
-        function (req, res) {
-            res.redirect('/');
-        });
-    // example of calling a custom microservice.
-    app.use('/',
-        passport.authenticate('main', {
-            //noredirect: false //Don't redirect a user to the authentication page, just show an error
-            failureRedirect: '/logout' //fixes for auth tocken expiration
-        }),
-        function (req, res, next) {
-            if (req.session.userscope === undefined) {
-                let options = {
-                    method: 'POST',
-                    url: process.env.uaaUrl + '/check_token',
-                    form: {
-                        token: req.session.passport.user.ticket.access_token
-                    },
-                    headers: {
-                        'Authorization': 'Basic ' + process.env.base64ClientCredential
-                    }
-                };
-                request(options, function (err, response, body) {
-                    if (!err && response.statusCode == 200) {
-                        let resp = JSON.parse(body);
-                        req.session.userscope = resp.scope;
-                        next();
-                    } else {
-                        res.send('<h2>User not authorized to access Activiti Application</h2>');
-                        next();
-                    }
-                });
-            } else {
-                next();
-            }
-        },
-        function (req, res, next) {
+  if (config.dataExchangeURL && config.dataExchangeURL.indexOf('https') === 0) {
+    app.post('/api/cloneasset', proxy.addClientTokenMiddleware, dataExchange.cloneAsset);
 
-            if (req.session.userscope.contains(process.env.activitiUserScope)) {
-                next();
-            } else {
-                next();
-                // res.send('<h2>User not authorized to access Activiti Application 2nd else</h2>');
-            }
-        },
-        express.static(path.join(__dirname, process.env['base-dir'] ? process.env['base-dir'] : '../public'))
+    app.post('/api/updateasset', proxy.addClientTokenMiddleware,
+        proxy.customProxyMiddleware('/api/updateasset', config.dataExchangeURL, '/services/fdhrouter/fielddatahandler/putfielddata'));
+  }
 
-    );
-    app.get('/token', passport.authenticate('main', {
-        noredirect: true
-    }), function (req, res, next) {
-        req.response = JSON.stringify(req.session.passport.user.ticket.access_token);
-        next();
-    });
+  //Use this route to make the entire app secure.  This forces login for any path in the entire app.
+  app.use('/', passport.authenticate('main', {
+      noredirect: false // Redirect the user to the authentication page
+    }),
+    express.static(path.join(__dirname, process.env['base-dir'] ? process.env['base-dir'] : '../public'))
+  );
+
+  //Or you can follow this pattern to create secure routes,
+  // if only some portions of the app are secure.
+  app.get('/secure', passport.authenticate('main', {
+    noredirect: true //Don't redirect the user to the authentication page, just show an error
+    }), function(req, res) {
+    console.log('Accessing the secure route');
+    // modify this to send a secure.html file if desired.
+    res.send('<h2>This is a sample secure route.</h2>');
+  });
+
 }
 
-//all control goes to routes.js
-app.use('/', require('./controllers/routes.js'));
+/*******************************************************
+SET UP MOCK API ROUTES
+*******************************************************/
+// NOTE: these routes are added after the real API routes.
+//  So, if you have configured asset, the real asset API will be used, not the mock API.
+// Import route modules
+var mockAssetRoutes = require('./routes/mock-asset.js')();
+var mockTimeSeriesRouter = require('./routes/mock-time-series.js');
+var mockRmdDatasourceRoutes = require('./routes/mock-rmd-datasource.js')();
+// add mock API routes.  (Remove these before deploying to production.)
+app.use(['/mock-api/predix-asset', '/api/predix-asset'], jsonServer.router(mockAssetRoutes));
+app.use(['/mock-api/predix-timeseries', '/api/predix-timeseries'], mockTimeSeriesRouter);
+app.use(['/mock-api/datagrid', '/api/datagrid'], jsonServer.router(mockRmdDatasourceRoutes));
+require('./routes/mock-live-data.js')(httpServer);
+// ***** END MOCK ROUTES *****
 
-httpServer.listen(process.env.VCAP_APP_PORT || 5000, function () {
-    console.log('Server started on port: ' + httpServer.address().port);
+// route to return info for path-guide component.
+app.use('/learningpaths', require('./routes/learning-paths')(config));
+
+//logout route
+app.get('/logout', function(req, res) {
+	req.session.destroy();
+	req.logout();
+  passportConfig.reset(); //reset auth tokens
+  res.redirect(config.uaaURL + '/logout?redirect=' + config.appURL);
 });
 
-// for other common APIs like 'contact us' etc.
+app.get('/favicon.ico', function (req, res) {
+	res.send('favicon.ico');
+});
+
+app.get('/config', function(req, res) {
+  let title = "Predix WebApp Starter";
+  if (config.isAssetConfigured()) {
+    title = "RMD Reference App";
+  }
+  console.log();
+  res.send({wsUrl: config.websocketServerURL, appHeader: title, dataExchangeEnabled: config.isDataExchangeConfigured(),
+      timeSeriesOnly: config.timeSeriesOnly == "true" ? true : false});
+});
+
+// Sample route middleware to ensure user is authenticated.
+//   Use this route middleware on any resource that needs to be protected.  If
+//   the request is authenticated (typically via a persistent login session),
+//   the request will proceed.  Otherwise, the user will be redirected to the
+//   login page.
+//currently not being used as we are using passport-oauth2-middleware to check if
+//token has expired
+/*
+function ensureAuthenticated(req, res, next) {
+    if(req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect('/');
+}
+*/
+
+////// error handlers //////
+// catch 404 and forward to error handler
+app.use(function(err, req, res, next) {
+  console.error(err.stack);
+	var err = new Error('Not Found');
+	err.status = 404;
+	next(err);
+});
+
+// development error handler - prints stacktrace
+if (node_env === 'development') {
+	app.use(function(err, req, res, next) {
+		if (!res.headersSent) {
+			res.status(err.status || 500);
+			res.send({
+				message: err.message,
+				error: err
+			});
+		}
+	});
+}
+
+// production error handler
+// no stacktraces leaked to user
+app.use(function(err, req, res, next) {
+	if (!res.headersSent) {
+		res.status(err.status || 500);
+		res.send({
+			message: err.message,
+			error: {}
+		});
+	}
+});
+
+httpServer.listen(process.env.VCAP_APP_PORT || 5000, function () {
+	console.log ('Server started on port: ' + httpServer.address().port);
+});
+
 module.exports = app;

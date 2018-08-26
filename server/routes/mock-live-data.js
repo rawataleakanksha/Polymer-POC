@@ -26,13 +26,13 @@ function createWebSocketServer(httpServer) {
     const wsServer = new ws.Server({server: httpServer});
 
     wsServer.on('connection', function connection(socket) {
-         
+        console.log('connection opened: ', socket.upgradeReq.url);
         let path = socket.upgradeReq.url || "";
         if (path === "" || path === "/") {
             path = "/Compressor-2017:CompressionRatio";
         } 
         const tagName = path.substring(path.lastIndexOf("/") + 1);
-         
+        console.log('web socket opened for tag:', tagName);
         // send one datapoint right away:
         socket.send(getRandomData(tagName));
         let intervalId = setInterval(function() {
@@ -41,10 +41,10 @@ function createWebSocketServer(httpServer) {
             }
         }, 1000);
         // socket.on('message', function incoming(msg) {
-        //      
+        //     console.log('received message:', msg);
         // });
         socket.on('close', function() {
-             
+            console.log('web socket closed');
             clearInterval(intervalId);
         })        
     });
